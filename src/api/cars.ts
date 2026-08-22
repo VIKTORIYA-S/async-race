@@ -20,15 +20,15 @@ export async function createCar(name: string, color: string): Promise<Car> {
 
 export async function deleteCar(id: number): Promise<void> {
   await fetch(`${BASE_URL}/garage/${id}`, {
-    method: "DELETE",
+    method: 'DELETE',
   });
 }
 
 
 export async function updateCar(id: number, name: string, color: string): Promise<Car> {
   const response = await fetch(`${BASE_URL}/garage/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id, name, color }),
   });
   const data: Car = await response.json();
