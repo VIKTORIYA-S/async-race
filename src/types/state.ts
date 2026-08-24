@@ -1,5 +1,5 @@
-import type { Car } from "./car";
-import type { Winner } from "./winner";
+import type { Car } from './car';
+import type { Winner } from './winner';
 
 
 export type View = 'garage' | 'winners';
