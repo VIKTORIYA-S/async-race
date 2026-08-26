@@ -1,12 +1,15 @@
 import { getState } from "../state/store";
 import type { Car } from "../types/car";
+import { deleteCar, getCars } from "../api/cars";
+import { setState } from "../state/store";
+import { render } from "./render";
 
 export function renderGarage(): HTMLElement {
   const state = getState();
 
   const container = document.createElement("div");
-    const title = document.createElement("h2");
-    title.textContent = `Гараж (${state.garagePagination.currentPage} из ${state.garagePagination.totalElements})`;
+  const title = document.createElement("h2");
+  title.textContent = `Гараж (${state.garagePagination.currentPage} из ${state.garagePagination.totalElements})`;
   container.appendChild(title);
 
   state.cars.forEach((car) => {
@@ -15,7 +18,6 @@ export function renderGarage(): HTMLElement {
   });
   return container;
 }
-
 
 function renderCarItem(car: Car): HTMLElement {
   const item = document.createElement("div");
@@ -31,14 +33,24 @@ function renderCarItem(car: Car): HTMLElement {
 
   item.appendChild(colorBox);
 
+  const deleteButton = document.createElement("button");
+  deleteButton.textContent = "Удалить";
+  deleteButton.addEventListener("click", async () => {
+    await deleteCar(car.id);
+    setState({ cars: await getCars() });
+    render();
+  });
+  item.appendChild(deleteButton);
+
   return item;
 }
 
-
-
-//  const deleteButton = document.createElement("button");
-//  deleteButton.textContent = "Удалить";
-//  deleteButton.style.backgroundColor = "red";
-
-//  deleteButton.style.padding = "10px";
-//  deleteButton.appendChild(item);
+// const createButton = document.createElement("button");
+// createButton.textContent = "Создать";
+// createButton.addEventListener("click", async () => {
+//   await createCar(car.name, car.color);
+//   await getCars();
+//   setState({ cars: await getCars() });
+//   render();
+// });
+// item.appendChild(createButton);
