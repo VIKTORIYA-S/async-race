@@ -19,7 +19,26 @@ export function renderGarage(): HTMLElement {
 
 function renderCarItem(car: Car): HTMLElement {
   const item = document.createElement("div");
-  item.textContent = car.name;
+
+  const name = document.createElement("span");
+  name.textContent = car.name;
+  item.appendChild(name);
+
+  const colorBox = document.createElement("div");
+  colorBox.style.backgroundColor = car.color;
+  colorBox.style.width = "30px";
+  colorBox.style.height = "30px";
+
+  item.appendChild(colorBox);
+
   return item;
 }
 
+
+
+//  const deleteButton = document.createElement("button");
+//  deleteButton.textContent = "Удалить";
+//  deleteButton.style.backgroundColor = "red";
+
+//  deleteButton.style.padding = "10px";
+//  deleteButton.appendChild(item);
