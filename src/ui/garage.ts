@@ -1,6 +1,6 @@
 import { getState, setState } from "../state/store";
 import type { Car } from "../types/car";
-import { deleteCar, getCars, createCar } from "../api/cars";
+import { deleteCar, getCars, createCar, updateCar } from "../api/cars";
 import { render } from "./render";
 
 export function renderGarage(): HTMLElement {
@@ -20,6 +20,7 @@ export function renderGarage(): HTMLElement {
 }
 
 function renderCarItem(car: Car): HTMLElement {
+  const state = getState();
   const item = document.createElement("div");
 
   const name = document.createElement("span");
@@ -33,6 +34,7 @@ function renderCarItem(car: Car): HTMLElement {
 
   item.appendChild(colorBox);
 
+
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "Удалить";
   deleteButton.addEventListener("click", async () => {
@@ -41,6 +43,19 @@ function renderCarItem(car: Car): HTMLElement {
     render();
   });
   item.appendChild(deleteButton);
+
+  const editButton = document.createElement("button");
+  editButton.textContent = "Изменить";
+  editButton.addEventListener("click", () => {
+    setState({ editForm: { carId: car.id, name: car.name, color: car.color } });
+    render();
+
+  });
+  item.appendChild(editButton);
+
+  if (state.editForm.carId === car.id) {
+    item.appendChild(renderEditForm());
+  }
 
   return item;
 }
@@ -71,6 +86,49 @@ function renderCreateForm(): HTMLElement {
     setState({
       cars: await getCars(),
       createForm: { carId: null, name: "", color: "" },
+    });
+    render();
+  });
+
+  form.appendChild(inputName);
+  form.appendChild(inputColor);
+  form.appendChild(createButton);
+
+  return form;
+}
+
+
+function renderEditForm(): HTMLElement {
+  const state = getState();
+
+  const form = document.createElement("div");
+
+  if (state.editForm.carId === null) {
+    return form;
+  }
+  const carId = state.editForm.carId;
+
+  const inputName = document.createElement("input");
+  inputName.value = state.editForm.name;
+  inputName.placeholder = "Введите название машины";
+  inputName.addEventListener("input", () => {
+    setState({ editForm: { ...state.editForm, name: inputName.value } });
+  });
+
+  const inputColor = document.createElement("input");
+  inputColor.value = state.editForm.color;
+  inputColor.placeholder = "Введите цвет машины";
+  inputColor.addEventListener("input", () => {
+    setState({ editForm: { ...state.editForm, color: inputColor.value } });
+  });
+
+  const createButton = document.createElement("button");
+  createButton.textContent = "Сохранить";
+  createButton.addEventListener("click", async () => {
+    await updateCar(carId, inputName.value, inputColor.value);
+    setState({
+      cars: await getCars(),
+      editForm: { carId: null, name: "", color: "" },
     });
     render();
   });
