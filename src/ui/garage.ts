@@ -3,9 +3,12 @@ import type { Car } from "../types/car";
 import { deleteCar, getCars, createCar, updateCar } from "../api/cars";
 import { render } from "./render";
 import { generateCarName, generateCarColor } from "../utils/carGenerator";
-import { calculateAnimationDuration, calculateProgress } from "../utils/animation";
-import { startEngine, stopEngine } from '../api/engine';
-import { drive } from '../api/engine';
+import {
+  calculateAnimationDuration,
+  calculateProgress,
+} from "../utils/animation";
+import { startEngine, stopEngine } from "../api/engine";
+import { drive } from "../api/engine";
 
 const CARS_PER_PAGE = 7;
 
@@ -29,19 +32,24 @@ export function renderGarage(): HTMLElement {
   const end = start + CARS_PER_PAGE;
   const carsOnPage = state.cars.slice(start, end);
 
- const startAnimations: Array<() => Promise<void>> = [];
- const resetAnimations: Array<() => Promise<void>> = [];
+  const startAnimations: Array<() => Promise<void>> = [];
+  const resetAnimations: Array<() => Promise<void>> = [];
 
- carsOnPage.forEach((car) => {
-   const { element, startAnimation, resetAnimation } = renderCarItem(car);
-   container.appendChild(element);
-   startAnimations.push(startAnimation);
-   resetAnimations.push(resetAnimation);
- });
+  const raceState = { finished: false };
+  carsOnPage.forEach((car) => {
+    const { element, startAnimation, resetAnimation } = renderCarItem(
+      car,
+      raceState,
+    );
+    container.appendChild(element);
+    startAnimations.push(startAnimation);
+    resetAnimations.push(resetAnimation);
+  });
 
   const startRaceButton = document.createElement("button");
   startRaceButton.textContent = "Начать гонку";
   startRaceButton.addEventListener("click", () => {
+    raceState.finished = false;
     startAnimations.forEach((startAnimation) => {
       startAnimation();
     });
@@ -62,7 +70,10 @@ export function renderGarage(): HTMLElement {
   return container;
 }
 
-function renderCarItem(car: Car): {
+function renderCarItem(
+  car: Car,
+  raceState: { finished: boolean },
+): {
   element: HTMLElement;
   startAnimation: () => Promise<void>;
   resetAnimation: () => Promise<void>;
@@ -105,6 +116,11 @@ function renderCarItem(car: Car): {
       const progress = calculateProgress(elapsed, duration);
       const x = progress * (track.clientWidth - colorBox.clientWidth);
       colorBox.style.transform = `translateX(${x}px)`;
+
+      if (progress >= 1 && !raceState.finished) {
+        raceState.finished = true;
+        alert(`Победитель: ${car.name}!`);
+      }
 
       if (progress < 1 && !stopped) {
         requestAnimationFrame(step);
@@ -307,4 +323,3 @@ async function createListCars(): Promise<void> {
   setState({ cars: await getCars() });
   render();
 }
-
