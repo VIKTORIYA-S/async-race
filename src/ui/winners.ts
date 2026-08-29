@@ -13,6 +13,10 @@ export function renderWinners(): HTMLElement {
   title.textContent = "Победители";
   container.appendChild(title);
 
+  // const subtitle = document.createElement("p");
+  // subtitle.textContent = `Всего машин: $`;
+  // container.appendChild(subtitle);
+
   const switchButton = document.createElement("button");
   switchButton.textContent = "Гараж";
   switchButton.addEventListener("click", () => {

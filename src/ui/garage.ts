@@ -21,6 +21,17 @@ export function renderGarage(): HTMLElement {
   title.textContent = `Гараж (${state.garagePagination.currentPage} из ${Math.ceil(state.cars.length / CARS_PER_PAGE)})`;
   container.appendChild(title);
 
+  const subtitle = document.createElement("p");
+  subtitle.textContent = `Всего машин: ${state.cars.length}`;
+  container.appendChild(subtitle);
+
+  const generateButton = document.createElement("button");
+  generateButton.textContent = "Сгенерировать 100 машин";
+  generateButton.addEventListener("click", () => {
+    createListCars();
+  });
+  container.appendChild(generateButton);
+
   const switchButton = document.createElement("button");
   switchButton.textContent = "Победители";
   switchButton.addEventListener("click", () => {
@@ -31,12 +42,12 @@ export function renderGarage(): HTMLElement {
   container.appendChild(switchButton);
   container.appendChild(renderCreateForm());
 
-  const generateButton = document.createElement("button");
-  generateButton.textContent = "Сгенерировать 100 машин";
-  generateButton.addEventListener("click", () => {
-    createListCars();
-  });
-  container.appendChild(generateButton);
+  // const generateButton = document.createElement("button");
+  // generateButton.textContent = "Сгенерировать 100 машин";
+  // generateButton.addEventListener("click", () => {
+  //   createListCars();
+  // });
+  // container.appendChild(generateButton);
 
   const start = (state.garagePagination.currentPage - 1) * CARS_PER_PAGE;
   const end = start + CARS_PER_PAGE;
