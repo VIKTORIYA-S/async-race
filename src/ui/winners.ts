@@ -9,20 +9,34 @@ const WINNERS_PER_PAGE = 10;
 
 export function renderWinners(): HTMLElement {
   const container = document.createElement("div");
+  container.className = "page";
+
+  const header = document.createElement("div");
+  header.className = "page-header";
+
   const title = document.createElement("h2");
   title.textContent = "Победители";
-  container.appendChild(title);
+  header.appendChild(title);
+
+  const subtitle = document.createElement("p");
+  subtitle.className = "page-subtitle";
+  header.appendChild(subtitle);
+
+  container.appendChild(header);
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "toolbar";
 
   const switchButton = document.createElement("button");
+  switchButton.className = "btn btn-outline";
   switchButton.textContent = "Гараж";
   switchButton.addEventListener("click", () => {
     setState({ view: "garage" });
     render();
   });
-  container.appendChild(switchButton);
+  toolbar.appendChild(switchButton);
 
-  const subtitle = document.createElement("p");
-  container.appendChild(subtitle);
+  container.appendChild(toolbar);
 
   const content = document.createElement("div");
   container.appendChild(content);
@@ -68,7 +82,7 @@ async function loadWinners(
   }
 
   title.textContent = `Победители (${currentPage} из ${totalPages})`;
-    subtitle.textContent = `Всего победителей: ${winnerViews.length}`;
+  subtitle.textContent = `Всего победителей: ${winnerViews.length}`;
 
   content.innerHTML = "";
   content.appendChild(renderSortControls());
@@ -77,17 +91,22 @@ async function loadWinners(
   const end = start + WINNERS_PER_PAGE;
   const pageWinners = winnerViews.slice(start, end);
 
-    const table = document.createElement("div");
-    pageWinners.forEach((winner, index) => {
-      const number = start + index + 1;
-      const row = document.createElement("div");
+  const table = document.createElement("div");
+  table.className = "winners-table";
 
-      const numberSpan = document.createElement("span");
-      numberSpan.textContent = `${number}. `;
-      row.appendChild(numberSpan);
+  pageWinners.forEach((winner, index) => {
+    const number = start + index + 1;
+    const row = document.createElement("div");
+    row.className = "winner-row";
 
-      const carIcon = document.createElement("span");
-      carIcon.innerHTML = `
+    const numberSpan = document.createElement("span");
+    numberSpan.className = "winner-number";
+    numberSpan.textContent = `${number}`;
+    row.appendChild(numberSpan);
+
+    const carIcon = document.createElement("span");
+    carIcon.className = "winner-icon";
+    carIcon.innerHTML = `
       <svg viewBox="0 0 64 32" width="40" height="20" xmlns="http://www.w3.org/2000/svg">
         <rect x="4" y="12" width="56" height="12" rx="3" fill="${winner.color}" />
         <path d="M14 12 L20 4 H44 L50 12 Z" fill="${winner.color}" />
@@ -95,15 +114,16 @@ async function loadWinners(
         <circle cx="48" cy="26" r="5" fill="#222" />
       </svg>
     `;
-      row.appendChild(carIcon);
+    row.appendChild(carIcon);
 
-      const infoSpan = document.createElement("span");
-      infoSpan.textContent = ` ${winner.name} — побед: ${winner.wins}, лучшее время: ${winner.time.toFixed(2)}с`;
-      row.appendChild(infoSpan);
+    const infoSpan = document.createElement("span");
+    infoSpan.className = "winner-info";
+    infoSpan.textContent = `${winner.name} — побед: ${winner.wins}, лучшее время: ${winner.time.toFixed(2)}с`;
+    row.appendChild(infoSpan);
 
-      table.appendChild(row);
-    });
-    content.appendChild(table);
+    table.appendChild(row);
+  });
+  content.appendChild(table);
 
   content.appendChild(renderPagination(currentPage, totalPages));
 }
@@ -111,8 +131,10 @@ async function loadWinners(
 function renderSortControls(): HTMLElement {
   const state = getState();
   const container = document.createElement("div");
+  container.className = "sort-controls";
 
   const winsButton = document.createElement("button");
+  winsButton.className = "btn btn-outline";
   const winsArrow =
     state.winnersSort.field === "wins"
       ? state.winnersSort.order === "asc"
@@ -126,6 +148,7 @@ function renderSortControls(): HTMLElement {
   container.appendChild(winsButton);
 
   const timeButton = document.createElement("button");
+  timeButton.className = "btn btn-outline";
   const timeArrow =
     state.winnersSort.field === "time"
       ? state.winnersSort.order === "asc"
@@ -155,8 +178,10 @@ function renderPagination(
   totalPages: number,
 ): HTMLElement {
   const container = document.createElement("div");
+  container.className = "pagination";
 
   const prevButton = document.createElement("button");
+  prevButton.className = "btn btn-outline";
   prevButton.textContent = "Назад";
   prevButton.disabled = currentPage <= 1;
   prevButton.addEventListener("click", () => {
@@ -172,6 +197,7 @@ function renderPagination(
   container.appendChild(prevButton);
 
   const nextButton = document.createElement("button");
+  nextButton.className = "btn btn-outline";
   nextButton.textContent = "Вперед";
   nextButton.disabled = currentPage >= totalPages;
   nextButton.addEventListener("click", () => {

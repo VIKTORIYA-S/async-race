@@ -17,29 +17,41 @@ export function renderGarage(): HTMLElement {
   const state = getState();
 
   const container = document.createElement("div");
+  container.className = "page";
+  const header = document.createElement("div");
+  header.className = "page-header";
   const title = document.createElement("h2");
   title.textContent = `Гараж (${state.garagePagination.currentPage} из ${Math.ceil(state.cars.length / CARS_PER_PAGE)})`;
   container.appendChild(title);
 
   const subtitle = document.createElement("p");
+  subtitle.className = "page-subtitle";
   subtitle.textContent = `Всего машин: ${state.cars.length}`;
   container.appendChild(subtitle);
 
-  const generateButton = document.createElement("button");
-  generateButton.textContent = "Сгенерировать 100 машин";
-  generateButton.addEventListener("click", () => {
-    createListCars();
-  });
-  container.appendChild(generateButton);
+  container.appendChild(header);
+
+  const toolbar = document.createElement("div");
+  toolbar.className = "toolbar";
 
   const switchButton = document.createElement("button");
+  switchButton.className = "btn btn-outline";
   switchButton.textContent = "Победители";
   switchButton.addEventListener("click", () => {
     setState({ view: "winners" });
     render();
   });
+  toolbar.appendChild(switchButton);
 
-  container.appendChild(switchButton);
+  const generateButton = document.createElement("button");
+  generateButton.className = "btn btn-outline";
+  generateButton.textContent = "Сгенерировать 100 машин";
+  generateButton.addEventListener("click", () => {
+    createListCars();
+  });
+  toolbar.appendChild(generateButton);
+
+  container.appendChild(toolbar);
   container.appendChild(renderCreateForm());
 
   const start = (state.garagePagination.currentPage - 1) * CARS_PER_PAGE;
@@ -61,6 +73,7 @@ export function renderGarage(): HTMLElement {
   });
 
   const startRaceButton = document.createElement("button");
+  startRaceButton.className = "btn btn-race";
   startRaceButton.textContent = "Начать гонку";
   startRaceButton.addEventListener("click", () => {
     raceState.finished = false;
@@ -68,16 +81,21 @@ export function renderGarage(): HTMLElement {
       startAnimation();
     });
   });
-  container.appendChild(startRaceButton);
 
   const resetRaceButton = document.createElement("button");
+  resetRaceButton.className = "btn btn-outline";
   resetRaceButton.textContent = "Сбросить гонку";
   resetRaceButton.addEventListener("click", () => {
     resetAnimations.forEach((resetAnimation) => {
       resetAnimation();
     });
   });
-  container.appendChild(resetRaceButton);
+
+  const raceControls = document.createElement("div");
+  raceControls.className = "race-controls";
+  raceControls.appendChild(startRaceButton);
+  raceControls.appendChild(resetRaceButton);
+  container.appendChild(raceControls);
 
   container.appendChild(renderPagination());
 
@@ -93,14 +111,17 @@ function renderCarItem(
   resetAnimation: () => Promise<void>;
 } {
   const track = document.createElement("div");
-  track.style.position = "relative";
-  track.style.width = "100%";
-  track.style.height = "30px";
-  track.style.backgroundColor = "#ccc";
+  track.className = "car-track";
 
   const state = getState();
   const item = document.createElement("div");
+  item.className = "car-card";
+
+  const controls = document.createElement("div");
+  controls.className = "car-controls";
+
   const name = document.createElement("span");
+    name.className = "car-name";
   name.textContent = car.name;
   item.appendChild(name);
 
@@ -121,6 +142,7 @@ function renderCarItem(
 `;
 
   const startButton = document.createElement("button");
+  startButton.className = "btn btn-start";
   startButton.textContent = "Старт";
   startButton.disabled = state.drivingCarIds.has(car.id);
   async function startCarAnimation(): Promise<void> {
@@ -163,6 +185,7 @@ function renderCarItem(
   startButton.addEventListener("click", startCarAnimation);
 
   const stopButton = document.createElement("button");
+  stopButton.className = "btn btn-outline";
   stopButton.textContent = "Стоп";
   stopButton.disabled = !state.drivingCarIds.has(car.id);
   async function resetCarAnimation(): Promise<void> {
@@ -178,12 +201,12 @@ function renderCarItem(
 
   stopButton.addEventListener("click", resetCarAnimation);
 
-  item.appendChild(startButton);
-  item.appendChild(stopButton);
+  controls.appendChild(startButton);
+  controls.appendChild(stopButton);
   track.appendChild(colorBox);
-  item.appendChild(track);
 
   const deleteButton = document.createElement("button");
+    deleteButton.className = "btn btn-danger";
   deleteButton.textContent = "Удалить";
   deleteButton.addEventListener("click", async () => {
     await deleteCar(car.id);
@@ -191,15 +214,18 @@ function renderCarItem(
     setState({ cars: await getCars() });
     render();
   });
-  item.appendChild(deleteButton);
+  controls.appendChild(deleteButton);
 
   const editButton = document.createElement("button");
+    editButton.className = "btn btn-outline";
   editButton.textContent = "Изменить";
   editButton.addEventListener("click", () => {
     setState({ editForm: { carId: car.id, name: car.name, color: car.color } });
     render();
   });
-  item.appendChild(editButton);
+  controls.appendChild(editButton);
+  item.appendChild(controls);
+  item.appendChild(track);
 
   if (state.editForm.carId === car.id) {
     item.appendChild(renderEditForm());
@@ -216,8 +242,10 @@ function renderCreateForm(): HTMLElement {
   const state = getState();
 
   const form = document.createElement("div");
+  form.className = "form-panel";
 
   const inputName = document.createElement("input");
+  inputName.className = "form-input";
   inputName.value = state.createForm.name;
   inputName.placeholder = "Введите название машины";
   inputName.addEventListener("input", () => {
@@ -226,6 +254,7 @@ function renderCreateForm(): HTMLElement {
   });
 
   const inputColor = document.createElement("input");
+  inputColor.className = "form-color";
   inputColor.value = state.createForm.color;
   inputColor.type = "color";
   inputColor.placeholder = "Введите цвет машины";
@@ -235,6 +264,7 @@ function renderCreateForm(): HTMLElement {
   });
 
   const createButton = document.createElement("button");
+  createButton.className = "btn btn-primary";
   createButton.textContent = "Создать";
   createButton.addEventListener("click", async () => {
     if (inputName.value.trim() === "" || inputColor.value.trim() === "") {
@@ -260,6 +290,7 @@ function renderEditForm(): HTMLElement {
   const state = getState();
 
   const form = document.createElement("div");
+  form.className = "form-panel form-panel--edit";
 
   if (state.editForm.carId === null) {
     return form;
@@ -267,6 +298,7 @@ function renderEditForm(): HTMLElement {
   const carId = state.editForm.carId;
 
   const inputName = document.createElement("input");
+  inputName.className = "form-input";
   inputName.value = state.editForm.name;
   inputName.placeholder = "Введите название машины";
   inputName.addEventListener("input", () => {
@@ -274,6 +306,7 @@ function renderEditForm(): HTMLElement {
   });
 
   const inputColor = document.createElement("input");
+  inputColor.className = "form-color";
   inputColor.value = state.editForm.color;
   inputColor.type = "color";
   inputColor.addEventListener("input", () => {
@@ -281,6 +314,7 @@ function renderEditForm(): HTMLElement {
   });
 
   const createButton = document.createElement("button");
+  createButton.className = "btn btn-primary";
   createButton.textContent = "Сохранить";
   createButton.addEventListener("click", async () => {
     if (inputName.value.trim() === "" || inputColor.value.trim() === "") {
@@ -304,7 +338,9 @@ function renderEditForm(): HTMLElement {
 
 function renderPagination(): HTMLElement {
   const container = document.createElement("div");
+  container.className = "pagination";
   const prevButton = document.createElement("button");
+  prevButton.className = "btn btn-outline";
   prevButton.textContent = "Назад";
   prevButton.addEventListener("click", () => {
     const state = getState();
@@ -321,6 +357,7 @@ function renderPagination(): HTMLElement {
   container.appendChild(prevButton);
 
   const nextButton = document.createElement("button");
+  nextButton.className = "btn btn-outline";
   nextButton.textContent = "Вперед";
   nextButton.addEventListener("click", () => {
     const state = getState();
