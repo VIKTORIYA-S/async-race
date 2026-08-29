@@ -1,7 +1,8 @@
-import { getState, setState } from "../state/store";
-import type { Car } from "../types/car";
-import { deleteCar, getCars, createCar, updateCar } from "../api/cars";
-import { render } from "./render";
+import { getState, setState } from '../state/store';
+import type { Car } from '../types/car';
+import { deleteCar, getCars, createCar, updateCar } from '../api/cars';
+import { render } from './render';
+import { generateCarName, generateCarColor } from '../utils/carGenerator';
 
 const CARS_PER_PAGE = 7;
 
@@ -13,6 +14,13 @@ export function renderGarage(): HTMLElement {
   title.textContent = `Гараж (${state.garagePagination.currentPage} из ${state.cars.length})`;
   container.appendChild(title);
   container.appendChild(renderCreateForm());
+
+  const generateButton = document.createElement("button");
+  generateButton.textContent = "Сгенерировать 100 машин";
+  generateButton.addEventListener("click", () => {
+    createListCars();
+  });
+  container.appendChild(generateButton);
 
   const start = (state.garagePagination.currentPage - 1) * CARS_PER_PAGE;
   const end = start + CARS_PER_PAGE;
@@ -194,4 +202,15 @@ function renderPagination(): HTMLElement {
   container.appendChild(nextButton);
 
   return container;
+}
+
+
+async function createListCars(): Promise<void> {
+  const promises: Promise<Car>[] = [];
+  for (let i = 0; i < 100; i++) {
+    promises.push(createCar(generateCarName(), generateCarColor()));
+  }
+  await Promise.all(promises);
+  setState({ cars: await getCars() });
+  render();
 }
