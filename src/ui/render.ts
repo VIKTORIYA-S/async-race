@@ -1,5 +1,6 @@
 import { getState } from "../state/store";
 import { renderGarage } from "./garage";
+import { renderWinners } from "./winners";
 
 export function render(): void {
   const app = document.querySelector<HTMLDivElement>("#app");
@@ -15,6 +16,6 @@ export function render(): void {
   if (state.view === "garage") {
     app.appendChild(renderGarage());
   } else {
-    console.log("rendering winners");
+    app.appendChild(renderWinners());
   }
 }

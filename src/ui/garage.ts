@@ -9,6 +9,7 @@ import {
 } from "../utils/animation";
 import { startEngine, stopEngine } from "../api/engine";
 import { drive } from "../api/engine";
+import { getWinners, createWinner, updateWinner } from "../api/winners";
 
 const CARS_PER_PAGE = 7;
 
@@ -19,6 +20,15 @@ export function renderGarage(): HTMLElement {
   const title = document.createElement("h2");
   title.textContent = `Гараж (${state.garagePagination.currentPage} из ${state.cars.length})`;
   container.appendChild(title);
+
+  const switchButton = document.createElement("button");
+  switchButton.textContent = "Победители";
+  switchButton.addEventListener("click", () => {
+    setState({ view: "winners" });
+    render();
+  });
+
+  container.appendChild(switchButton);
   container.appendChild(renderCreateForm());
 
   const generateButton = document.createElement("button");
@@ -120,6 +130,7 @@ function renderCarItem(
       if (progress >= 1 && !raceState.finished) {
         raceState.finished = true;
         alert(`Победитель: ${car.name}!`);
+        saveWinner(car.id, duration / 1000);
       }
 
       if (progress < 1 && !stopped) {
@@ -322,4 +333,16 @@ async function createListCars(): Promise<void> {
   await Promise.all(promises);
   setState({ cars: await getCars() });
   render();
+}
+
+async function saveWinner(carId: number, time: number): Promise<void> {
+  const winners = await getWinners();
+  const existing = winners.find((w) => w.id === carId);
+
+  if (existing) {
+    const bestTime = Math.min(existing.time, time);
+    await updateWinner(carId, existing.wins + 1, bestTime);
+  } else {
+    await createWinner(carId, 1, time);
+  }
 }
