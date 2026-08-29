@@ -9,7 +9,7 @@ import {
 } from "../utils/animation";
 import { startEngine, stopEngine } from "../api/engine";
 import { drive } from "../api/engine";
-import { getWinners, createWinner, updateWinner } from "../api/winners";
+import { getWinners, createWinner, updateWinner, deleteWinner } from "../api/winners";
 
 const CARS_PER_PAGE = 7;
 
@@ -192,6 +192,7 @@ function renderCarItem(
   deleteButton.textContent = "Удалить";
   deleteButton.addEventListener("click", async () => {
     await deleteCar(car.id);
+    await deleteWinner(car.id);
     setState({ cars: await getCars() });
     render();
   });
