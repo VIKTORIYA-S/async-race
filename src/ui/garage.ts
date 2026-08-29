@@ -131,7 +131,7 @@ function renderCarItem(
   colorBox.style.position = "absolute";
   colorBox.style.width = "40px";
   colorBox.style.height = "20px";
-  colorBox.style.top = "5px";
+  colorBox.style.top = "1px";
   colorBox.innerHTML = `
   <svg viewBox="0 0 64 32" width="40" height="20" xmlns="http://www.w3.org/2000/svg">
     <rect x="4" y="12" width="56" height="12" rx="3" fill="${car.color}" />
