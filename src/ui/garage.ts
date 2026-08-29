@@ -82,6 +82,7 @@ function renderCreateForm(): HTMLElement {
 
   const inputColor = document.createElement("input");
   inputColor.value = state.createForm.color;
+  inputColor.type = "color";
   inputColor.placeholder = "Введите цвет машины";
   inputColor.addEventListener("input", () => {
     setState({ createForm: { ...state.createForm, color: inputColor.value } });
@@ -126,7 +127,7 @@ function renderEditForm(): HTMLElement {
 
   const inputColor = document.createElement("input");
   inputColor.value = state.editForm.color;
-  inputColor.placeholder = "Введите цвет машины";
+  inputColor.type = "color";
   inputColor.addEventListener("input", () => {
     setState({ editForm: { ...state.editForm, color: inputColor.value } });
   });
