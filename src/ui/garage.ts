@@ -18,7 +18,7 @@ export function renderGarage(): HTMLElement {
 
   const container = document.createElement("div");
   const title = document.createElement("h2");
-  title.textContent = `Гараж (${state.garagePagination.currentPage} из ${state.cars.length})`;
+  title.textContent = `Гараж (${state.garagePagination.currentPage} из ${Math.ceil(state.cars.length / CARS_PER_PAGE)})`;
   container.appendChild(title);
 
   const switchButton = document.createElement("button");
@@ -103,10 +103,18 @@ function renderCarItem(
   const colorBox = document.createElement("div");
   let stopped = false;
 
-  colorBox.style.backgroundColor = car.color;
   colorBox.style.position = "absolute";
-  colorBox.style.width = "30px";
-  colorBox.style.height = "30px";
+  colorBox.style.width = "40px";
+  colorBox.style.height = "20px";
+  colorBox.style.top = "5px";
+  colorBox.innerHTML = `
+  <svg viewBox="0 0 64 32" width="40" height="20" xmlns="http://www.w3.org/2000/svg">
+    <rect x="4" y="12" width="56" height="12" rx="3" fill="${car.color}" />
+    <path d="M14 12 L20 4 H44 L50 12 Z" fill="${car.color}" />
+    <circle cx="16" cy="26" r="5" fill="#222" />
+    <circle cx="48" cy="26" r="5" fill="#222" />
+  </svg>
+`;
 
   const startButton = document.createElement("button");
   startButton.textContent = "Старт";
