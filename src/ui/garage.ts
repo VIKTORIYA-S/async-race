@@ -36,20 +36,35 @@ export function renderGarage(): HTMLElement {
 }
 
 function renderCarItem(car: Car): HTMLElement {
+  const track = document.createElement("div");
+  track.style.position = "relative";
+  track.style.width = "100%";
+  track.style.height = "30px";
+  track.style.backgroundColor = "#ccc";
+
   const state = getState();
   const item = document.createElement("div");
-
   const name = document.createElement("span");
   name.textContent = car.name;
   item.appendChild(name);
 
   const colorBox = document.createElement("div");
   colorBox.style.backgroundColor = car.color;
+  colorBox.style.position = "absolute";
+  colorBox.style.left = "0";
   colorBox.style.width = "30px";
   colorBox.style.height = "30px";
 
-  item.appendChild(colorBox);
+  const startButton = document.createElement("button");
+  startButton.textContent = "Старт";
 
+  const stopButton = document.createElement("button");
+  stopButton.textContent = "Стоп";
+
+  item.appendChild(startButton);
+  item.appendChild(stopButton);
+  track.appendChild(colorBox);
+  item.appendChild(track);
 
   const deleteButton = document.createElement("button");
   deleteButton.textContent = "Удалить";
