@@ -3,19 +3,27 @@ import type { Car } from "../types/car";
 import { deleteCar, getCars, createCar, updateCar } from "../api/cars";
 import { render } from "./render";
 
+const CARS_PER_PAGE = 7;
+
 export function renderGarage(): HTMLElement {
   const state = getState();
 
   const container = document.createElement("div");
   const title = document.createElement("h2");
-  title.textContent = `Гараж (${state.garagePagination.currentPage} из ${state.garagePagination.totalElements})`;
+  title.textContent = `Гараж (${state.garagePagination.currentPage} из ${state.cars.length})`;
   container.appendChild(title);
   container.appendChild(renderCreateForm());
 
-  state.cars.forEach((car) => {
+  const start = (state.garagePagination.currentPage - 1) * CARS_PER_PAGE;
+  const end = start + CARS_PER_PAGE;
+  const carsOnPage = state.cars.slice(start, end);
+
+  carsOnPage.forEach((car) => {
     const carElement = renderCarItem(car);
     container.appendChild(carElement);
   });
+      container.appendChild(renderPagination());
+
   return container;
 }
 
@@ -82,11 +90,12 @@ function renderCreateForm(): HTMLElement {
   const createButton = document.createElement("button");
   createButton.textContent = "Создать";
   createButton.addEventListener("click", async () => {
+    if (inputName.value.trim() === "" || inputColor.value.trim() === "") {
+      alert("Пожалуйста, заполните все поля.");
+      return;
+    }
     await createCar(inputName.value, inputColor.value);
-    setState({
-      cars: await getCars(),
-      createForm: { carId: null, name: "", color: "" },
-    });
+    setState({ cars: await getCars(), createForm: { carId: null, name: "", color: "" } });
     render();
   });
 
@@ -125,6 +134,10 @@ function renderEditForm(): HTMLElement {
   const createButton = document.createElement("button");
   createButton.textContent = "Сохранить";
   createButton.addEventListener("click", async () => {
+    if (inputName.value.trim() === "" || inputColor.value.trim() === "") {
+      alert("Пожалуйста, заполните все поля.");
+      return;
+    }
     await updateCar(carId, inputName.value, inputColor.value);
     setState({
       cars: await getCars(),
@@ -140,3 +153,44 @@ function renderEditForm(): HTMLElement {
   return form;
 }
 
+
+function renderPagination(): HTMLElement {
+  const container = document.createElement("div");
+  const prevButton = document.createElement("button");
+  prevButton.textContent = "Назад";
+  prevButton.addEventListener("click", () => {
+    const state = getState();
+    if (state.garagePagination.currentPage > 1) {
+    setState({
+      garagePagination: {
+        ...state.garagePagination,
+        currentPage: state.garagePagination.currentPage - 1,
+      },
+    });
+    render();
+    }
+
+  });
+  container.appendChild(prevButton);
+
+  const nextButton = document.createElement("button");
+  nextButton.textContent = "Вперед";
+  nextButton.addEventListener("click", () => {
+    const state = getState();
+    if (
+      state.garagePagination.currentPage * CARS_PER_PAGE < state.cars.length
+    ) {
+      setState({
+        garagePagination: {
+          ...state.garagePagination,
+          currentPage: state.garagePagination.currentPage + 1,
+        },
+      });
+      render();
+    }
+
+  });
+  container.appendChild(nextButton);
+
+  return container;
+}
