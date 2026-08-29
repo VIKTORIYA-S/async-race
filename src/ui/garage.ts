@@ -29,16 +29,32 @@ export function renderGarage(): HTMLElement {
   const end = start + CARS_PER_PAGE;
   const carsOnPage = state.cars.slice(start, end);
 
+  const startAnimations: Array<() => Promise<void>> = [];
+
   carsOnPage.forEach((car) => {
-    const carElement = renderCarItem(car);
-    container.appendChild(carElement);
+    const { element, startAnimation } = renderCarItem(car);
+    container.appendChild(element);
+    startAnimations.push(startAnimation);
   });
+
+  const startRaceButton = document.createElement("button");
+  startRaceButton.textContent = "Начать гонку";
+  startRaceButton.addEventListener("click", () => {
+    startAnimations.forEach((startAnimation) => {
+      startAnimation();
+    });
+  });
+  container.appendChild(startRaceButton);
+
   container.appendChild(renderPagination());
 
   return container;
 }
 
-function renderCarItem(car: Car): HTMLElement {
+function renderCarItem(car: Car): {
+  element: HTMLElement;
+  startAnimation: () => Promise<void>;
+} {
   const track = document.createElement("div");
   track.style.position = "relative";
   track.style.width = "100%";
@@ -56,13 +72,12 @@ function renderCarItem(car: Car): HTMLElement {
 
   colorBox.style.backgroundColor = car.color;
   colorBox.style.position = "absolute";
-  // colorBox.style.left = "0";
   colorBox.style.width = "30px";
   colorBox.style.height = "30px";
 
   const startButton = document.createElement("button");
   startButton.textContent = "Старт";
-  startButton.addEventListener("click", async () => {
+  async function startCarAnimation(): Promise<void> {
     stopped = false;
     const { velocity, distance } = await startEngine(car.id);
     const duration = calculateAnimationDuration(distance, velocity);
@@ -70,9 +85,7 @@ function renderCarItem(car: Car): HTMLElement {
     setState({ drivingCarIds: new Set(getState().drivingCarIds).add(car.id) });
     startButton.disabled = true;
     stopButton.disabled = false;
-    // render();
 
-    // тут будет сама анимация + drive()
     const startTime = performance.now();
 
     function step(currentTime: number) {
@@ -85,6 +98,7 @@ function renderCarItem(car: Car): HTMLElement {
         requestAnimationFrame(step);
       }
     }
+
     requestAnimationFrame(step);
 
     try {
@@ -92,7 +106,9 @@ function renderCarItem(car: Car): HTMLElement {
     } catch (error) {
       stopped = true;
     }
-  });
+  }
+
+  startButton.addEventListener("click", startCarAnimation);
 
   const stopButton = document.createElement("button");
   stopButton.textContent = "Стоп";
@@ -133,7 +149,7 @@ function renderCarItem(car: Car): HTMLElement {
     item.appendChild(renderEditForm());
   }
 
-  return item;
+  return { element: item, startAnimation: startCarAnimation };
 }
 
 function renderCreateForm(): HTMLElement {
