@@ -42,13 +42,6 @@ export function renderGarage(): HTMLElement {
   container.appendChild(switchButton);
   container.appendChild(renderCreateForm());
 
-  // const generateButton = document.createElement("button");
-  // generateButton.textContent = "Сгенерировать 100 машин";
-  // generateButton.addEventListener("click", () => {
-  //   createListCars();
-  // });
-  // container.appendChild(generateButton);
-
   const start = (state.garagePagination.currentPage - 1) * CARS_PER_PAGE;
   const end = start + CARS_PER_PAGE;
   const carsOnPage = state.cars.slice(start, end);
@@ -228,7 +221,8 @@ function renderCreateForm(): HTMLElement {
   inputName.value = state.createForm.name;
   inputName.placeholder = "Введите название машины";
   inputName.addEventListener("input", () => {
-    setState({ createForm: { ...state.createForm, name: inputName.value } });
+    const currentForm = getState().createForm;
+    setState({ createForm: { ...currentForm, name: inputName.value } });
   });
 
   const inputColor = document.createElement("input");
@@ -236,7 +230,8 @@ function renderCreateForm(): HTMLElement {
   inputColor.type = "color";
   inputColor.placeholder = "Введите цвет машины";
   inputColor.addEventListener("input", () => {
-    setState({ createForm: { ...state.createForm, color: inputColor.value } });
+    const currentForm = getState().createForm;
+    setState({ createForm: { ...currentForm, color: inputColor.value } });
   });
 
   const createButton = document.createElement("button");
@@ -275,21 +270,21 @@ function renderEditForm(): HTMLElement {
   inputName.value = state.editForm.name;
   inputName.placeholder = "Введите название машины";
   inputName.addEventListener("input", () => {
-    setState({ editForm: { ...state.editForm, name: inputName.value } });
+    setState({ editForm: { ...getState().editForm, name: inputName.value } });
   });
 
   const inputColor = document.createElement("input");
   inputColor.value = state.editForm.color;
   inputColor.type = "color";
   inputColor.addEventListener("input", () => {
-    setState({ editForm: { ...state.editForm, color: inputColor.value } });
+    setState({ editForm: { ...getState().editForm, color: inputColor.value } });
   });
 
   const createButton = document.createElement("button");
   createButton.textContent = "Сохранить";
   createButton.addEventListener("click", async () => {
     if (inputName.value.trim() === "" || inputColor.value.trim() === "") {
-      alert("Пожалуйста, заполните все поля.");
+      alert("Пожалуйста, заполните все поля.");
       return;
     }
     await updateCar(carId, inputName.value, inputColor.value);
