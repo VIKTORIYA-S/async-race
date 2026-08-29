@@ -1,8 +1,11 @@
-import { getState, setState } from '../state/store';
-import type { Car } from '../types/car';
-import { deleteCar, getCars, createCar, updateCar } from '../api/cars';
-import { render } from './render';
-import { generateCarName, generateCarColor } from '../utils/carGenerator';
+import { getState, setState } from "../state/store";
+import type { Car } from "../types/car";
+import { deleteCar, getCars, createCar, updateCar } from "../api/cars";
+import { render } from "./render";
+import { generateCarName, generateCarColor } from "../utils/carGenerator";
+import { calculateAnimationDuration, calculateProgress } from "../utils/animation";
+import { startEngine, stopEngine } from '../api/engine';
+import { drive } from '../api/engine';
 
 const CARS_PER_PAGE = 7;
 
@@ -30,7 +33,7 @@ export function renderGarage(): HTMLElement {
     const carElement = renderCarItem(car);
     container.appendChild(carElement);
   });
-      container.appendChild(renderPagination());
+  container.appendChild(renderPagination());
 
   return container;
 }
@@ -49,17 +52,60 @@ function renderCarItem(car: Car): HTMLElement {
   item.appendChild(name);
 
   const colorBox = document.createElement("div");
+  let stopped = false;
+
   colorBox.style.backgroundColor = car.color;
   colorBox.style.position = "absolute";
-  colorBox.style.left = "0";
+  // colorBox.style.left = "0";
   colorBox.style.width = "30px";
   colorBox.style.height = "30px";
 
   const startButton = document.createElement("button");
   startButton.textContent = "Старт";
+  startButton.addEventListener("click", async () => {
+    stopped = false;
+    const { velocity, distance } = await startEngine(car.id);
+    const duration = calculateAnimationDuration(distance, velocity);
+
+    setState({ drivingCarIds: new Set(getState().drivingCarIds).add(car.id) });
+    startButton.disabled = true;
+    stopButton.disabled = false;
+    // render();
+
+    // тут будет сама анимация + drive()
+    const startTime = performance.now();
+
+    function step(currentTime: number) {
+      const elapsed = currentTime - startTime;
+      const progress = calculateProgress(elapsed, duration);
+      const x = progress * (track.clientWidth - colorBox.clientWidth);
+      colorBox.style.transform = `translateX(${x}px)`;
+
+      if (progress < 1 && !stopped) {
+        requestAnimationFrame(step);
+      }
+    }
+    requestAnimationFrame(step);
+
+    try {
+      await drive(car.id);
+    } catch (error) {
+      stopped = true;
+    }
+  });
 
   const stopButton = document.createElement("button");
   stopButton.textContent = "Стоп";
+  stopButton.addEventListener("click", async () => {
+    stopped = true;
+    await stopEngine(car.id);
+    colorBox.style.transform = "translateX(0)";
+    const updatedDrivingCarIds = new Set(getState().drivingCarIds);
+    updatedDrivingCarIds.delete(car.id);
+    setState({ drivingCarIds: updatedDrivingCarIds });
+    startButton.disabled = false;
+    stopButton.disabled = true;
+  });
 
   item.appendChild(startButton);
   item.appendChild(stopButton);
@@ -80,7 +126,6 @@ function renderCarItem(car: Car): HTMLElement {
   editButton.addEventListener("click", () => {
     setState({ editForm: { carId: car.id, name: car.name, color: car.color } });
     render();
-
   });
   item.appendChild(editButton);
 
@@ -119,7 +164,10 @@ function renderCreateForm(): HTMLElement {
       return;
     }
     await createCar(inputName.value, inputColor.value);
-    setState({ cars: await getCars(), createForm: { carId: null, name: "", color: "" } });
+    setState({
+      cars: await getCars(),
+      createForm: { carId: null, name: "", color: "" },
+    });
     render();
   });
 
@@ -129,7 +177,6 @@ function renderCreateForm(): HTMLElement {
 
   return form;
 }
-
 
 function renderEditForm(): HTMLElement {
   const state = getState();
@@ -177,7 +224,6 @@ function renderEditForm(): HTMLElement {
   return form;
 }
 
-
 function renderPagination(): HTMLElement {
   const container = document.createElement("div");
   const prevButton = document.createElement("button");
@@ -185,15 +231,14 @@ function renderPagination(): HTMLElement {
   prevButton.addEventListener("click", () => {
     const state = getState();
     if (state.garagePagination.currentPage > 1) {
-    setState({
-      garagePagination: {
-        ...state.garagePagination,
-        currentPage: state.garagePagination.currentPage - 1,
-      },
-    });
-    render();
+      setState({
+        garagePagination: {
+          ...state.garagePagination,
+          currentPage: state.garagePagination.currentPage - 1,
+        },
+      });
+      render();
     }
-
   });
   container.appendChild(prevButton);
 
@@ -202,7 +247,8 @@ function renderPagination(): HTMLElement {
   nextButton.addEventListener("click", () => {
     const state = getState();
     if (
-      state.garagePagination.currentPage * CARS_PER_PAGE < state.cars.length
+      state.garagePagination.currentPage * CARS_PER_PAGE <
+      state.cars.length
     ) {
       setState({
         garagePagination: {
@@ -212,13 +258,11 @@ function renderPagination(): HTMLElement {
       });
       render();
     }
-
   });
   container.appendChild(nextButton);
 
   return container;
 }
-
 
 async function createListCars(): Promise<void> {
   const promises: Promise<Car>[] = [];
@@ -229,3 +273,4 @@ async function createListCars(): Promise<void> {
   setState({ cars: await getCars() });
   render();
 }
+
