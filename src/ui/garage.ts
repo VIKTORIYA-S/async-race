@@ -29,13 +29,15 @@ export function renderGarage(): HTMLElement {
   const end = start + CARS_PER_PAGE;
   const carsOnPage = state.cars.slice(start, end);
 
-  const startAnimations: Array<() => Promise<void>> = [];
+ const startAnimations: Array<() => Promise<void>> = [];
+ const resetAnimations: Array<() => Promise<void>> = [];
 
-  carsOnPage.forEach((car) => {
-    const { element, startAnimation } = renderCarItem(car);
-    container.appendChild(element);
-    startAnimations.push(startAnimation);
-  });
+ carsOnPage.forEach((car) => {
+   const { element, startAnimation, resetAnimation } = renderCarItem(car);
+   container.appendChild(element);
+   startAnimations.push(startAnimation);
+   resetAnimations.push(resetAnimation);
+ });
 
   const startRaceButton = document.createElement("button");
   startRaceButton.textContent = "Начать гонку";
@@ -46,6 +48,15 @@ export function renderGarage(): HTMLElement {
   });
   container.appendChild(startRaceButton);
 
+  const resetRaceButton = document.createElement("button");
+  resetRaceButton.textContent = "Сбросить гонку";
+  resetRaceButton.addEventListener("click", () => {
+    resetAnimations.forEach((resetAnimation) => {
+      resetAnimation();
+    });
+  });
+  container.appendChild(resetRaceButton);
+
   container.appendChild(renderPagination());
 
   return container;
@@ -54,6 +65,7 @@ export function renderGarage(): HTMLElement {
 function renderCarItem(car: Car): {
   element: HTMLElement;
   startAnimation: () => Promise<void>;
+  resetAnimation: () => Promise<void>;
 } {
   const track = document.createElement("div");
   track.style.position = "relative";
@@ -112,7 +124,7 @@ function renderCarItem(car: Car): {
 
   const stopButton = document.createElement("button");
   stopButton.textContent = "Стоп";
-  stopButton.addEventListener("click", async () => {
+  async function resetCarAnimation(): Promise<void> {
     stopped = true;
     await stopEngine(car.id);
     colorBox.style.transform = "translateX(0)";
@@ -121,7 +133,9 @@ function renderCarItem(car: Car): {
     setState({ drivingCarIds: updatedDrivingCarIds });
     startButton.disabled = false;
     stopButton.disabled = true;
-  });
+  }
+
+  stopButton.addEventListener("click", resetCarAnimation);
 
   item.appendChild(startButton);
   item.appendChild(stopButton);
@@ -149,7 +163,11 @@ function renderCarItem(car: Car): {
     item.appendChild(renderEditForm());
   }
 
-  return { element: item, startAnimation: startCarAnimation };
+  return {
+    element: item,
+    startAnimation: startCarAnimation,
+    resetAnimation: resetCarAnimation,
+  };
 }
 
 function renderCreateForm(): HTMLElement {
