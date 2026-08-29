@@ -129,6 +129,7 @@ function renderCarItem(
 
   const startButton = document.createElement("button");
   startButton.textContent = "Старт";
+  startButton.disabled = state.drivingCarIds.has(car.id);
   async function startCarAnimation(): Promise<void> {
     stopped = false;
     const { velocity, distance } = await startEngine(car.id);
@@ -170,6 +171,7 @@ function renderCarItem(
 
   const stopButton = document.createElement("button");
   stopButton.textContent = "Стоп";
+  stopButton.disabled = !state.drivingCarIds.has(car.id);
   async function resetCarAnimation(): Promise<void> {
     stopped = true;
     await stopEngine(car.id);
